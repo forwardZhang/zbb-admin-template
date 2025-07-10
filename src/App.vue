@@ -1,6 +1,6 @@
 <template>
   <RouterLink to="/">home</RouterLink>
-  <RouterLink to="/components/form">FormPage</RouterLink>
+  <RouterLink to="/components/form">FormPage text</RouterLink>
   <RouterView />
 </template>
 
