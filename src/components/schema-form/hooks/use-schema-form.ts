@@ -14,7 +14,7 @@ function useSchemaForm(props: any) {
     );
   };
   return {
-    UseSchemaForm: FormComponent,
+    RenderSchemaForm: FormComponent,
     validate: () => {
       return formRef.value?.validate();
     },

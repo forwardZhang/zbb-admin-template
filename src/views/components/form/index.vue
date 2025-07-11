@@ -1,12 +1,12 @@
 <template>
   <div class="form-page">
     <div>formData:{{ formData }}</div>
-    <!--    <SchemaForm ref="schemaFormRef" :schema="schema" :rules="rules" v-model="formData">-->
-    <!--      <template #age123> 我是age123 </template>-->
-    <!--    </SchemaForm>-->
-    <UseSchemaForm>
-      <template #age123>dqwdqwdage123</template>
-    </UseSchemaForm>
+    <SchemaForm :schema="schema" v-model="formData" :rules="rules">
+      <template #age123="{ model }"><el-input v-model.trim="model.age123" /> </template>
+      <template #abc="{ field, model }">
+        {{ field }}<el-input v-model.trim="model.abc" />
+      </template>
+    </SchemaForm>
     <el-button type="primary" @click="submit">提交</el-button>
   </div>
 </template>
@@ -14,7 +14,6 @@
 <script setup lang="ts">
   import { h, markRaw, ref, useTemplateRef } from 'vue';
   import HelloWorld from './hello-world.vue';
-  import useSchemaForm from '@/components/schema-form/hooks/use-schema-form.ts';
 
   const formData = ref({
     name: '',
@@ -37,6 +36,10 @@
       type: 'input',
       required: true,
       span: 12,
+      slots: {
+        prepend: () => h('span', 'Http://'),
+        append: () => h('span', 'com'),
+      },
     },
     {
       label: '年龄',
@@ -116,12 +119,14 @@
         ],
       },
     },
+    {
+      label: '插槽年龄',
+      name: 'abd',
+      slotName: 'abc',
+      required: true,
+      span: 12,
+    },
   ];
-  const { UseSchemaForm, validate } = useSchemaForm({
-    schema,
-    rules,
-    modelValue: formData,
-  });
   const schemaFormRef = useTemplateRef<any>('schemaFormRef');
 
   function submit() {

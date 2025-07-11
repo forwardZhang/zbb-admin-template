@@ -1,18 +1,20 @@
 <template>
   <el-form :model="formData" :rules="rules" label-position="left" ref="formRef">
-    <el-row :gutter="16">
-      <el-col :span="field.span ?? 24" v-for="field in schema" :key="field.name">
-        <el-form-item :label="field.label" :prop="field.name" v-bind="field.itemProps ?? {}">
-          <slot :name="field.slotName" v-if="field.slotName"> </slot>
-          <ComponentItem :field="field" v-else />
-        </el-form-item>
-      </el-col>
-    </el-row>
+    <FormLayout :schema="schema">
+      <template #item="{ field }: Record<string, any>">
+        <FormItem :field="field" v-model="formData">
+          <!-- 动态传递插槽 -->
+          <template v-if="field.slotName" #[field.slotName]="scope">
+            <slot :name="field.slotName" v-bind="scope" />
+          </template>
+        </FormItem>
+      </template>
+    </FormLayout>
   </el-form>
 </template>
 
 <script setup lang="ts">
-  import { type Component, defineComponent, h, useTemplateRef } from 'vue';
+  import { type Component, h, useTemplateRef } from 'vue';
   import {
     ElCheckbox,
     ElCheckboxGroup,
@@ -28,9 +30,11 @@
   import { omit } from 'lodash-es';
 
   defineOptions({
-    name: 'UseForm',
+    name: 'SchemaForm',
     inheritAttrs: false,
   });
+  import FormLayout from './components/form-layout/index.vue';
+  import FormItem from './components/form-item/index.vue';
 
   const props = withDefaults(
     defineProps<{
@@ -47,11 +51,7 @@
   const formData = defineModel<any>({
     default: () => ({}),
   });
-  const ComponentItemData2 = {
-    setup(_props: any) {
-      return () => h('div', 'hello world');
-    },
-  };
+
   const ComponentItem = {
     props: {
       field: {
