@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@vueuse/core": "^13.5.0",
     "element-plus": "^2.10.2",
     "lodash-es": "^4.17.21",
     "pinia": "^3.0.3",

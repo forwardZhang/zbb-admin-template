@@ -81,6 +81,7 @@
   };
 
   function getFieldProps(field: any) {
+    console.log('getFieldProps');
     if (field.props) return field.props;
     return {};
   }

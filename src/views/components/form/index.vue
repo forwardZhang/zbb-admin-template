@@ -1,7 +1,7 @@
 <template>
   <div class="form-page">
     <div>formData:{{ formData }}</div>
-    <SchemaForm :schema="schema" v-model="formData" :rules="rules">
+    <SchemaForm :schema="schema" v-model="formData" :rules="rules" ref="schemaFormRef">
       <template #age123="{ model }"><el-input v-model.trim="model.age123" /> </template>
       <template #abc="{ field, model }">
         {{ field }}<el-input v-model.trim="model.abc" />
@@ -130,7 +130,9 @@
   const schemaFormRef = useTemplateRef<any>('schemaFormRef');
 
   function submit() {
-    validate()
+    console.log(' schemaFormRef.value', schemaFormRef.value);
+    schemaFormRef.value
+      ?.validate()
       .then(() => {
         console.log('submit');
       })
@@ -140,9 +142,4 @@
   }
 </script>
 
-<style scoped>
-  .form-page {
-    width: 500px;
-    margin: 0 auto;
-  }
-</style>
+<style scoped></style>
