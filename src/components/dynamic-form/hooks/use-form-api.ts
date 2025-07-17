@@ -42,7 +42,10 @@ export function useFormApi() {
   }
 
   function setComponentInstance(fieldName: string, instance: any) {
-    componentInstanceMap[fieldName] = instance;
+    set(componentInstanceMap, fieldName, instance);
+  }
+  function getComponentInstance(fieldName: string) {
+    get(componentInstanceMap, fieldName);
   }
 
   function registerForm({
@@ -68,5 +71,6 @@ export function useFormApi() {
     getOptions,
     setOptions,
     setComponentInstance,
+    getComponentInstance,
   };
 }

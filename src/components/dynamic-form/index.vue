@@ -36,14 +36,28 @@
     modelValue?: any;
     defaultFormValue?: any;
   }>();
-
+  const isMounted = ref(false);
   const formRef = useTemplateRef<FormInstance>('formRef');
   const formApi = useFormApi();
   const { registerForm, formValues } = formApi;
   provideFormApi(formApi);
   const emits = defineEmits(['update:modelValue']);
-  const isMounted = ref(false);
-  onMounted(() => {
+
+  const computedSchema = computed(() => {
+    return (props.schema || []).map((schema, index) => {
+      return {
+        ...schema,
+        commonComponentProps: {},
+        componentProps: schema.componentProps,
+        formFieldProps: {
+          // ...formFieldProps,
+          ...schema.formFieldProps,
+        },
+      };
+    });
+  });
+
+  function initForm() {
     registerForm({
       formRef,
       formValues: props.modelValue ? cloneDeep(props.modelValue) : (props.defaultFormValue ?? {}),
@@ -60,24 +74,11 @@
         },
       );
     }
-    console.log('formValues', formValues);
     isMounted.value = true;
+  }
+  onMounted(() => {
+    initForm();
   });
-
-  const computedSchema = computed(() => {
-    return (props.schema || []).map((schema, index) => {
-      return {
-        ...schema,
-        commonComponentProps: {},
-        componentProps: schema.componentProps,
-        formFieldProps: {
-          // ...formFieldProps,
-          ...schema.formFieldProps,
-        },
-      };
-    });
-  });
-
   defineExpose(formApi);
 </script>
 
