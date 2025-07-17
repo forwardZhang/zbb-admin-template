@@ -11,11 +11,11 @@
       v-bind="{
         ...computedProps,
       }"
-      :model="formData"
+      :model="formValues"
     >
       <component
         :is="FieldComponent"
-        :modelValue="get(formData, props.fieldName)"
+        :modelValue="get(formValues, props.fieldName)"
         @update:modelValue="updateModelValue"
         v-bind="{
           ...computedProps,
@@ -28,10 +28,10 @@
 <script setup lang="ts">
   import { type Component, computed, useAttrs, useId } from 'vue';
   import { get, isFunction, isString, set } from 'lodash-es';
-  import { componentMap } from '@/components/vben-form/component-map.ts';
-  import type { FormItemDependencies } from '@/components/vben-form/types';
-  import useDependencies from '@/components/vben-form/hooks/use-dependencies.ts';
-
+  import { componentMap } from '../component-map.ts';
+  import type { FormItemDependencies } from '../types';
+  import useDependencies from '../hooks/use-dependencies.ts';
+  import { injectFormApi } from '../hooks/use-form-context.ts';
   const itemId = useId();
   const attrs = useAttrs();
   const props = defineProps<{
@@ -45,11 +45,13 @@
     dependencies?: FormItemDependencies;
     component: string | Component | (() => Component | string) | null;
   }>();
-  const formData = defineModel<any>();
+  const formApi: any = injectFormApi<any>();
+  const { formValues } = formApi;
   const { dynamicComponentProps, dynamicRules, isDisabled, isIf, isRequired, isShow } =
     useDependencies({
       getDependencies: () => props.dependencies,
-      formData,
+      formValues,
+      formApi,
     });
   const FieldComponent = computed(() => {
     const component = props.component;
@@ -62,7 +64,7 @@
   });
 
   function updateModelValue(value: any) {
-    set(formData.value, props.fieldName, value);
+    set(formValues, props.fieldName, value);
   }
   const computedProps = computed(() => {
     const componentProps = props.componentProps ?? {};

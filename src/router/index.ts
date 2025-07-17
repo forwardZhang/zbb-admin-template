@@ -21,7 +21,7 @@ const router = createRouter({
         {
           path: 'vben-form',
           name: 'VbenForm',
-          component: () => import('@/views/components/vben-form/index.vue'),
+          component: () => import('@/views/components/dy-form/index.vue'),
         },
       ],
     },

@@ -1,18 +1,17 @@
 <template>
   <div class="form-page">
-    <VbenForm :schema="schema" v-model="formData" :rules="rules" ref="schemaFormRef">
+    <DynamicForm :schema="schema" v-model="formData" :rules="rules" ref="schemaFormRef">
       <template #string="{ model }">
-        <!--        <el-input v-model="model.string"></el-input>-->
-        <HelloWorld v-model="model.string"></HelloWorld>
+        <el-input v-model="model.string"></el-input>
+        <!--        <HelloWorld v-model="model.string"></HelloWorld>-->
       </template>
-    </VbenForm>
+    </DynamicForm>
   </div>
 </template>
 
 <script setup lang="ts">
-  import VbenForm from '@/components/vben-form/index.vue';
+  import DynamicForm from '@/components/dynamic-form/index.vue';
   import { ref } from 'vue';
-  import HelloWorld from './hello-world.vue';
   const schema = [
     {
       component: 'IconPicker',
@@ -48,12 +47,12 @@
         // if({ formValue }) {
         //   return formValue.radioButton === 'B';
         // },
-        disabled: ({ formValue }) => {
-          return formValue.radioButton === 'B';
+        disabled: ({ formValues, formApi }) => {
+          return formValues.radioButton === 'B';
         },
-        trigger: ({ formValue }) => {
-          if (formValue.radioButton === 'B') {
-            formValue.string = '123';
+        trigger: ({ formValues }) => {
+          if (formValues.radioButton === 'B') {
+            formValues.string = '123';
           }
         },
         triggerFields: ['radioButton'],
@@ -203,7 +202,9 @@
     checkbotton: ['A', 'B'],
     string: 'xxxxx',
   });
-  const rules = [];
+  const rules = {
+    number: [{ required: true, message: '请输入数字', trigger: 'change' }],
+  };
 
   const schemaFormRef = ref();
 
