@@ -11,7 +11,7 @@ export default function useDependencies({
   formApi: any;
 }) {
   if (!formValues) {
-    throw new Error('useDependencies should be used within <VbenForm>');
+    throw new Error('form values is null');
   }
 
   const isIf = ref(true);
@@ -19,7 +19,7 @@ export default function useDependencies({
   const isShow = ref(true);
   const isRequired = ref(false);
   const dynamicComponentProps = ref<any>({});
-  const dynamicRules = ref<any>();
+  const dynamicRules = ref<any>([]);
 
   const triggerFieldValues = computed(() => {
     // 该字段可能会被多个字段触发
@@ -34,7 +34,7 @@ export default function useDependencies({
     isIf.value = true;
     isShow.value = true;
     isRequired.value = false;
-    dynamicRules.value = undefined;
+    dynamicRules.value = [];
     dynamicComponentProps.value = {};
   };
 
@@ -84,10 +84,6 @@ export default function useDependencies({
         isDisabled.value = disabled;
       }
 
-      if (isFunction(required)) {
-        isRequired.value = !!(await required({ formValues, formApi }));
-      }
-
       if (isFunction(trigger)) {
         await trigger({ formValues, formApi });
       }
@@ -100,7 +96,6 @@ export default function useDependencies({
     dynamicRules,
     isDisabled,
     isIf,
-    isRequired,
     isShow,
   };
 }

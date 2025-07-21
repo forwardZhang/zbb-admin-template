@@ -6,6 +6,7 @@
     v-bind="props.formFieldProps"
     v-if="isIf"
     v-show="isShow"
+    :rules="computedRules"
   >
     <slot
       v-bind="{
@@ -27,7 +28,7 @@
 
 <script setup lang="ts">
   import { type Component, computed, useAttrs, useId } from 'vue';
-  import { get, isFunction, isString, set } from 'lodash-es';
+  import { get, isFunction, isNil, isString, set } from 'lodash-es';
   import { componentMap } from '../component-map.ts';
   import type { FormItemDependencies } from '../types';
   import useDependencies from '../hooks/use-dependencies.ts';
@@ -47,12 +48,11 @@
   }>();
   const formApi: any = injectFormApi<any>();
   const { formValues } = formApi;
-  const { dynamicComponentProps, dynamicRules, isDisabled, isIf, isRequired, isShow } =
-    useDependencies({
-      getDependencies: () => props.dependencies,
-      formValues,
-      formApi,
-    });
+  const { dynamicComponentProps, dynamicRules, isDisabled, isIf, isShow } = useDependencies({
+    getDependencies: () => props.dependencies,
+    formValues,
+    formApi,
+  });
   const FieldComponent = computed(() => {
     const component = props.component;
     const finalComponent = isString(component) ? componentMap[component] : component;
@@ -66,11 +66,25 @@
   function updateModelValue(value: any) {
     set(formValues, props.fieldName, value);
   }
+  const computedRules = computed(() => {
+    let ruleValues: any = [];
+    if (Array.isArray(props.rules)) {
+      ruleValues = [...props.rules];
+    } else if (!isNil(props.required)) {
+      ruleValues.push({
+        required: props.required,
+        message: `${props.label}是必填项`,
+        trigger: 'blur',
+      });
+    }
+    return [...ruleValues, ...dynamicRules.value];
+  });
   const computedProps = computed(() => {
     const componentProps = props.componentProps ?? {};
     return {
       disabled: isDisabled.value,
       ...componentProps,
+      ...dynamicComponentProps.value,
     };
   });
 </script>

@@ -178,6 +178,7 @@
       component: 'Select',
       fieldName: 'select',
       label: 'Select',
+      required: true,
       componentProps: {
         filterable: true,
         options: [
