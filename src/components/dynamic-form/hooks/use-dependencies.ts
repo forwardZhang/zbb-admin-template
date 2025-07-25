@@ -1,14 +1,16 @@
 import { computed, ref, watch } from 'vue';
-import { isBoolean, isFunction, isNil } from 'lodash-es';
+import { get, isBoolean, isFunction, isNil } from 'lodash-es';
 
 export default function useDependencies({
   getDependencies,
   formValues,
   formApi,
+  fieldName,
 }: {
   getDependencies: () => any | undefined;
   formValues: any;
   formApi: any;
+  fieldName: string;
 }) {
   if (!formValues) {
     throw new Error('form values is null');
@@ -25,7 +27,7 @@ export default function useDependencies({
     // 该字段可能会被多个字段触发
     const triggerFields = getDependencies()?.triggerFields ?? [];
     return triggerFields.map((dep: string) => {
-      return formValues[dep];
+      return get(formValues, dep);
     });
   });
 
@@ -50,8 +52,9 @@ export default function useDependencies({
       // 1. 优先判断if，如果if为false，则不渲染dom，后续判断也不再执行
       // const formValues = formValues;
 
+      const commonArgs = { value: get(formValues, fieldName), formValues, formApi };
       if (isFunction(whenIf)) {
-        isIf.value = !!(await whenIf({ formValues, formApi }));
+        isIf.value = !!(await whenIf(commonArgs));
         // 不渲染
         if (!isIf.value) return;
       } else if (isBoolean(whenIf)) {
@@ -61,7 +64,7 @@ export default function useDependencies({
 
       // 2. 判断show，如果show为false，则隐藏
       if (isFunction(show)) {
-        isShow.value = !!(await show({ formValues, formApi }));
+        isShow.value = !!(await show(commonArgs));
         if (!isShow.value) return;
       } else if (isBoolean(show)) {
         isShow.value = show;
@@ -69,23 +72,23 @@ export default function useDependencies({
       }
 
       if (isFunction(componentProps)) {
-        dynamicComponentProps.value = await componentProps({ formValues, formApi });
+        dynamicComponentProps.value = await componentProps(commonArgs);
       }
 
       if (isFunction(rules)) {
-        dynamicRules.value = await rules({ formValues, formApi });
+        dynamicRules.value = await rules(commonArgs);
       }
 
       if (isNil(disabled)) {
         isDisabled.value = undefined;
       } else if (isFunction(disabled)) {
-        isDisabled.value = !!(await disabled({ formValues, formApi }));
+        isDisabled.value = !!(await disabled(commonArgs));
       } else if (isBoolean(disabled)) {
         isDisabled.value = disabled;
       }
 
       if (isFunction(trigger)) {
-        await trigger({ formValues, formApi });
+        await trigger(commonArgs);
       }
     },
     { deep: true, immediate: true },

@@ -2,13 +2,8 @@ type FormItemDependenciesCondition<T = boolean | PromiseLike<boolean>> = (
   value: Partial<Record<string, any>>,
   actions: FormActions,
 ) => T;
-type FormActions = ({ formData }: { formData: any }) => void;
+type FormActions = ({ formValues, formApi }: { formValues: any; formApi: any }) => void;
 export interface FormItemDependencies {
-  /**
-   * 组件参数
-   * @returns 组件参数
-   */
-  componentProps?: any;
   /**
    * 是否禁用
    * @returns 是否禁用
@@ -29,11 +24,6 @@ export interface FormItemDependencies {
    */
   rules?: any;
   /**
-   * 是否隐藏(Css)
-   * @returns 是否隐藏
-   */
-  show?: boolean | FormItemDependenciesCondition;
-  /**
    * 任意触发都会执行
    */
   trigger?: FormItemDependenciesCondition<void>;
@@ -44,17 +34,4 @@ export interface FormItemDependencies {
 }
 
 // 这里需要自行根据业务组件库进行适配，需要用到的组件都需要在这里类型说明
-export type ComponentType =
-  | 'Checkbox'
-  | 'CheckboxGroup'
-  | 'DatePicker'
-  | 'Divider'
-  | 'Input'
-  | 'InputNumber'
-  | 'RadioGroup'
-  | 'Select'
-  | 'Space'
-  | 'Switch'
-  | 'TimePicker'
-  | 'TreeSelect'
-  | 'Upload';
+export type ComponentType = 'text' | 'number' | 'select';

@@ -1,8 +1,8 @@
 <template>
   <div class="form-page">
     <DynamicForm :schema="schema" v-model="formData" :rules="rules" ref="schemaFormRef">
-      <template #string="{ model }">
-        <el-input v-model="model.string"></el-input>
+      <template #select1="{ model }">
+        <el-input v-model="model.select1"></el-input>
         <!--        <HelloWorld v-model="model.string"></HelloWorld>-->
       </template>
     </DynamicForm>
@@ -14,18 +14,18 @@
   import { ref } from 'vue';
   const schema = [
     {
-      component: 'IconPicker',
+      type: 'IconPicker',
       fieldName: 'icon',
       label: 'IconPicker',
     },
     {
-      component: 'ApiSelect',
+      type: 'ApiSelect',
       componentProps: {},
       fieldName: 'api',
       label: 'ApiSelect',
     },
     {
-      component: 'ApiTreeSelect',
+      type: 'ApiTreeSelect',
       componentProps: {
         childrenField: 'children',
         labelField: 'name',
@@ -35,14 +35,15 @@
       label: 'ApiTreeSelect',
     },
     {
-      component: 'Input',
-      fieldName: 'string',
-      label: 'String',
+      label: '文本类',
+      fieldName: 'text1',
+      type: 'text',
     },
     {
-      component: 'InputNumber',
-      fieldName: 'number',
-      label: 'Number',
+      label: '数字类',
+      fieldName: 'number1',
+      type: 'number',
+
       dependencies: {
         // if({ formValue }) {
         //   return formValue.radioButton === 'B';
@@ -55,147 +56,52 @@
             formValues.string = '123';
           }
         },
-        triggerFields: ['radioButton'],
+        triggerFields: ['text1'],
+      },
+      onChange: (value) => {
+        console.log('onChange', value);
       },
     },
     {
-      component: 'RadioGroup',
-      fieldName: 'radio',
-      label: 'Radio',
-      componentProps: {
-        options: [
-          {
-            value: 'A',
-            label: 'A',
-          },
-          {
-            value: 'B',
-            label: 'B',
-          },
-          {
-            value: 'C',
-            label: 'C',
-          },
-          {
-            value: 'D',
-            label: 'D',
-          },
-          {
-            value: 'E',
-            label: 'E',
-          },
-        ],
-      },
-    },
-    {
-      component: 'RadioGroup',
-      fieldName: 'radioButton',
-      label: 'RadioButton',
-      componentProps: {
-        isButton: true,
-        options: [
-          {
-            value: 'A',
-            label: '选项A',
-          },
-          {
-            value: 'B',
-            label: '选项B',
-          },
-          {
-            value: 'C',
-            label: '选项C',
-          },
-          {
-            value: 'D',
-            label: '选项D',
-          },
-          {
-            value: 'E',
-            label: '选项E',
-          },
-          {
-            value: 'F',
-            label: '选项F',
-          },
-        ],
-      },
-    },
-    {
-      component: 'CheckboxGroup',
-      fieldName: 'checkbox',
-      label: 'Checkbox',
-      componentProps: {
-        options: [
-          {
-            value: 'A',
-            label: '选项A',
-          },
-          {
-            value: 'B',
-            label: '选项B',
-          },
-          {
-            value: 'C',
-            label: '选项C',
-          },
-        ],
-      },
-    },
-    {
-      component: 'CheckboxGroup',
-      fieldName: 'checkbox1',
-      label: 'Checkbox1',
-    },
-    {
-      component: 'CheckboxGroup',
-      fieldName: 'checkbotton',
-      label: 'CheckBotton',
-      componentProps: {
-        isButton: true,
-        options: [
-          {
-            value: 'A',
-            label: '选项A',
-          },
-          {
-            value: 'B',
-            label: '选项B',
-          },
-          {
-            value: 'C',
-            label: '选项C',
-          },
-        ],
-      },
-    },
-    {
-      component: 'DatePicker',
-      fieldName: 'date',
-      label: 'Date',
-    },
-    {
-      component: 'Select',
-      fieldName: 'select',
-      label: 'Select',
+      label: '选择框',
+      fieldName: 'select1',
+      type: 'select',
       required: true,
-      componentProps: {
-        filterable: true,
+      source: {
+        labelField: 'label',
+        valueField: 'value',
         options: [
           {
-            value: 'A',
             label: '选项A',
+            value: 'A',
           },
           {
-            value: 'B',
             label: '选项B',
+            value: 'B',
           },
           {
-            value: 'C',
             label: '选项C',
+            value: 'C',
           },
         ],
       },
+      // componentProps: {
+      //   filterable: true,
+      //   options: [
+      //     {
+      //       value: 'A',
+      //       label: '选项A',
+      //     },
+      //     {
+      //       value: 'B',
+      //       label: '选项B',
+      //     },
+      //     {
+      //       value: 'C',
+      //       label: '选项C',
+      //     },
+      //   ],
+      // },
     },
   ];
 

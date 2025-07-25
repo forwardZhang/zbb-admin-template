@@ -1,6 +1,7 @@
 <template>
   <div>
     {{ formValues }}
+
     <el-form
       ref="formRef"
       :model="formValues"
@@ -9,27 +10,27 @@
       class="dynamic-form"
     >
       <div ref="wrapperRef" class="form-wrapper">
-        <template v-for="cSchema in computedSchema" :key="cSchema.fieldName">
-          <FormField v-bind="cSchema" :class="cSchema.formItemClass" :rules="cSchema.rules">
-            <template #default="slotProps">
-              <slot v-bind="slotProps" :name="cSchema.fieldName"></slot>
-            </template>
-          </FormField>
-        </template>
+        <el-row :gutter="16">
+          <el-col v-for="field in computedSchema" :span="field.span ?? 24" :key="field.fieldName">
+            <FormField v-bind="field">
+              <template #default="slotProps">
+                <slot v-bind="slotProps" :name="field.fieldName"></slot>
+              </template>
+            </FormField>
+          </el-col>
+        </el-row>
       </div>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { computed, onMounted, ref, useId, useTemplateRef, watch } from 'vue';
-
-  import FormField from './components/form-field.vue';
+  import { computed, onMounted, ref, useId, useSlots, useTemplateRef, watch } from 'vue';
   import { useFormApi } from './hooks/use-form-api.ts';
   import type { FormInstance } from 'element-plus';
   import { provideFormApi } from './hooks/use-form-context';
   import { cloneDeep } from 'lodash-es';
-
+  import FormField from '@/components/dynamic-form/components/form-field.vue';
   const props = defineProps<{
     rules: any;
     schema: any[];
