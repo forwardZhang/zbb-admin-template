@@ -9,7 +9,7 @@
       class="dynamic-form"
     >
       <div ref="wrapperRef" class="form-wrapper">
-        <FieldRender :fields="computedSchema"></FieldRender>
+        <FieldsRender :fields="computedSchema"></FieldsRender>
       </div>
     </el-form>
   </div>
@@ -21,7 +21,7 @@
   import type { FormInstance } from 'element-plus';
   import { provideFormApi } from './hooks/use-form-context';
   import { cloneDeep } from 'lodash-es';
-  import FieldRender from './components/field-render.vue';
+  import FieldsRender from './components/fields-render.vue';
   const props = defineProps<{
     rules: any;
     schema: any[];

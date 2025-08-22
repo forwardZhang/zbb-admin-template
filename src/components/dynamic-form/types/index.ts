@@ -33,9 +33,9 @@ export interface FormItemDependencies {
   triggerFields: string[];
 }
 
-export type ComponentType = 'text' | 'number' | 'select' | 'object' | 'array';
+export type ComponentType = 'text' | 'number' | 'select';
 // 基础表单项
-export interface BaseFormSchema {
+export interface FormSchema {
   label: string;
   fieldName: string;
   type: ComponentType;
@@ -45,19 +45,4 @@ export interface BaseFormSchema {
   required?: boolean;
   rules?: any[];
   span?: number;
-  properties?: FormSchema[];
-  items?: FormSchema;
 }
-// 对象属性
-export interface ObjectFormSchema extends BaseFormSchema {
-  type: 'object';
-  properties: FormSchema[];
-}
-// 数组项的定义
-export interface ArrayFormSchema extends BaseFormSchema {
-  type: 'array';
-  getDefaultValue?: () => any;
-  items: FormSchema;
-}
-
-export type FormSchema = BaseFormSchema | ObjectFormSchema | ArrayFormSchema;

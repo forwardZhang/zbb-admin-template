@@ -19,7 +19,7 @@
   import useDependencies from '../hooks/use-dependencies.ts';
   import type { FormSchema } from '../types';
 
-  const formApi = injectFormApi<any>();
+  const formApi: any = injectFormApi();
   const props = defineProps<{
     field: FormSchema;
   }>();
