@@ -1,10 +1,6 @@
 <template>
   <div class="form-page">
     <DynamicForm :schema="schema" v-model="formData" :rules="rules" ref="schemaFormRef">
-      <template #select1="{ model }">
-        <el-input v-model="model.select1"></el-input>
-        <!--        <HelloWorld v-model="model.string"></HelloWorld>-->
-      </template>
     </DynamicForm>
   </div>
 </template>
@@ -14,25 +10,66 @@
   import { ref } from 'vue';
   const schema = [
     {
-      type: 'IconPicker',
-      fieldName: 'icon',
-      label: 'IconPicker',
+      label: '我是用户对象',
+      fieldName: 'userData',
+      type: 'object',
+      properties: [
+        {
+          label: '姓名',
+          fieldName: 'name',
+          type: 'text',
+        },
+        {
+          label: '年龄',
+          fieldName: 'age',
+          type: 'number',
+        },
+        {
+          type: 'array',
+          label: '联系方式',
+          fieldName: 'contacts',
+          items: {
+            type: 'object',
+            properties: [
+              {
+                type: 'select',
+                label: '类型',
+                fieldName: 'type',
+                span: 8,
+                componentProps: {
+                  options: [
+                    { label: '手机', value: 'phone' },
+                    { label: '邮箱', value: 'email' },
+                  ],
+                },
+              },
+              {
+                type: 'text',
+                label: '值',
+                fieldName: 'value',
+                span: 16,
+              },
+            ],
+          },
+        },
+      ],
     },
     {
-      type: 'ApiSelect',
-      componentProps: {},
-      fieldName: 'api',
-      label: 'ApiSelect',
-    },
-    {
-      type: 'ApiTreeSelect',
-      componentProps: {
-        childrenField: 'children',
-        labelField: 'name',
-        valueField: 'path',
-      },
-      fieldName: 'apiTree',
-      label: 'ApiTreeSelect',
+      label: '我是用户对象',
+      fieldName: 'userData',
+      type: 'object',
+      properties: [
+        {
+          label: '姓名',
+          fieldName: 'name',
+          type: 'text',
+        },
+        {
+          label: '年龄',
+          fieldName: 'age',
+          type: 'number',
+        },
+      ],
     },
     {
       label: '文本类',
@@ -45,18 +82,18 @@
       type: 'number',
 
       dependencies: {
-        // if({ formValue }) {
-        //   return formValue.radioButton === 'B';
+        if({ formValues }) {
+          return formValues?.userData?.contacts?.length >= 3;
+        },
+        // disabled: ({ formValues, formApi }) => {
+        //   return formValues.radioButton === 'B';
         // },
-        disabled: ({ formValues, formApi }) => {
-          return formValues.radioButton === 'B';
-        },
-        trigger: ({ formValues }) => {
-          if (formValues.radioButton === 'B') {
-            formValues.string = '123';
-          }
-        },
-        triggerFields: ['text1'],
+        // trigger: ({ formValues }) => {
+        //   if (formValues.radioButton === 'B') {
+        //     formValues.string = '123';
+        //   }
+        // },
+        triggerFields: ['text1', 'userData.contacts'],
       },
       onChange: (value) => {
         console.log('onChange', value);
@@ -108,6 +145,16 @@
   const formData = ref({
     checkbotton: ['A', 'B'],
     string: 'xxxxx',
+    userData: {
+      name: 'xxx',
+      age: 12,
+      contacts: [
+        {
+          type: '',
+          text: '',
+        },
+      ],
+    },
   });
   const rules = {
     number: [{ required: true, message: '请输入数字', trigger: 'change' }],

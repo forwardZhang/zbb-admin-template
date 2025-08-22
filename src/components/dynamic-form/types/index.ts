@@ -33,5 +33,31 @@ export interface FormItemDependencies {
   triggerFields: string[];
 }
 
-// 这里需要自行根据业务组件库进行适配，需要用到的组件都需要在这里类型说明
-export type ComponentType = 'text' | 'number' | 'select';
+export type ComponentType = 'text' | 'number' | 'select' | 'object' | 'array';
+// 基础表单项
+export interface BaseFormSchema {
+  label: string;
+  fieldName: string;
+  type: ComponentType;
+  formFieldProps?: any;
+  componentProps?: any;
+  dependencies?: FormItemDependencies;
+  required?: boolean;
+  rules?: any[];
+  span?: number;
+  properties?: FormSchema[];
+  items?: FormSchema;
+}
+// 对象属性
+export interface ObjectFormSchema extends BaseFormSchema {
+  type: 'object';
+  properties: FormSchema[];
+}
+// 数组项的定义
+export interface ArrayFormSchema extends BaseFormSchema {
+  type: 'array';
+  getDefaultValue?: () => any;
+  items: FormSchema;
+}
+
+export type FormSchema = BaseFormSchema | ObjectFormSchema | ArrayFormSchema;

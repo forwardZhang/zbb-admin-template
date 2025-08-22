@@ -1,7 +1,6 @@
 <template>
   <div>
     {{ formValues }}
-
     <el-form
       ref="formRef"
       :model="formValues"
@@ -10,15 +9,7 @@
       class="dynamic-form"
     >
       <div ref="wrapperRef" class="form-wrapper">
-        <el-row :gutter="16">
-          <el-col v-for="field in computedSchema" :span="field.span ?? 24" :key="field.fieldName">
-            <FormField v-bind="field">
-              <template #default="slotProps">
-                <slot v-bind="slotProps" :name="field.fieldName"></slot>
-              </template>
-            </FormField>
-          </el-col>
-        </el-row>
+        <FieldRender :fields="computedSchema"></FieldRender>
       </div>
     </el-form>
   </div>
@@ -30,7 +21,7 @@
   import type { FormInstance } from 'element-plus';
   import { provideFormApi } from './hooks/use-form-context';
   import { cloneDeep } from 'lodash-es';
-  import FormField from '@/components/dynamic-form/components/form-field.vue';
+  import FieldRender from './components/field-render.vue';
   const props = defineProps<{
     rules: any;
     schema: any[];
@@ -45,14 +36,14 @@
   const emits = defineEmits(['update:modelValue']);
 
   const computedSchema = computed(() => {
-    return (props.schema || []).map((schema, index) => {
+    return (props.schema || []).map((field, index) => {
       return {
-        ...schema,
+        ...field,
         commonComponentProps: {},
-        componentProps: schema.componentProps,
+        componentProps: field.componentProps,
         formFieldProps: {
           // ...formFieldProps,
-          ...schema.formFieldProps,
+          ...field.formFieldProps,
         },
       };
     });
@@ -75,10 +66,10 @@
         },
       );
     }
-    isMounted.value = true;
   }
   onMounted(() => {
     initForm();
+    isMounted.value = true;
   });
   defineExpose(formApi);
 </script>
