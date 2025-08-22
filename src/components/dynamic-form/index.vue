@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="dynamic-form">
     {{ formValues }}
     <el-form
       ref="formRef"
