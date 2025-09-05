@@ -1,16 +1,28 @@
 <template>
-  <div class="dynamic-form">
-    {{ formValues }}
+  <div class="dynamic-form" v-if="isMounted">
     <el-form
       ref="formRef"
+      :inline="isInline"
       :model="formValues"
-      :rules="rules"
-      label-position="left"
-      class="dynamic-form"
+      label-position="right"
+      class="el-form-instance"
     >
-      <div ref="wrapperRef" class="form-wrapper">
-        <FieldsRender :fields="computedSchema"></FieldsRender>
-      </div>
+      <el-row :gutter="16" v-if="!isInline">
+        <el-col :span="24" v-for="field in computedFields" :key="field.fieldName">
+          <FormField :field="field">
+            <template #default="slotData">
+              <slot :name="field.fieldName" v-bind="slotData"></slot>
+            </template>
+          </FormField>
+        </el-col>
+      </el-row>
+      <template v-else v-for="field in computedFields" :key="field.fieldName">
+        <FormField :field="field">
+          <template #default="slotData">
+            <slot :name="field.fieldName" v-bind="slotData"></slot>
+          </template>
+        </FormField>
+      </template>
     </el-form>
   </div>
 </template>
@@ -20,26 +32,29 @@
   import { useFormApi } from './hooks/use-form-api.ts';
   import type { FormInstance } from 'element-plus';
   import { provideFormApi } from './hooks/use-form-context';
-  import { cloneDeep } from 'lodash-es';
-  import FieldsRender from './components/fields-render.vue';
-  const props = defineProps<{
-    rules: any;
-    schema: any[];
-    modelValue?: any;
-    defaultFormValue?: any;
-  }>();
+  import FormField from './components/form-field.vue';
+  const props = withDefaults(
+    defineProps<{
+      inline?: boolean;
+      fields: any[];
+      modelValue: any;
+    }>(),
+    {
+      inline: false,
+    },
+  );
+
+  const isInline = computed(() => props.inline);
   const isMounted = ref(false);
   const formRef = useTemplateRef<FormInstance>('formRef');
   const formApi = useFormApi();
   const { registerForm, formValues } = formApi;
   provideFormApi(formApi);
-  const emits = defineEmits(['update:modelValue']);
 
-  const computedSchema = computed(() => {
-    return (props.schema || []).map((field, index) => {
+  const computedFields = computed(() => {
+    return (props.fields || []).map((field, index) => {
       return {
         ...field,
-        commonComponentProps: {},
         componentProps: field.componentProps,
         formFieldProps: {
           // ...formFieldProps,
@@ -49,27 +64,24 @@
     });
   });
 
+  const emits = defineEmits(['update:modelValue']);
+  watch(
+    () => formValues,
+    (value) => {
+      emits('update:modelValue', value);
+    },
+    { deep: true },
+  );
   function initForm() {
     registerForm({
       formRef,
-      formValues: props.modelValue ? cloneDeep(props.modelValue) : (props.defaultFormValue ?? {}),
+      initFormValue: props.modelValue,
     });
-
-    if (props.modelValue) {
-      watch(
-        () => formValues,
-        (newValue) => {
-          emits('update:modelValue', newValue);
-        },
-        {
-          deep: true,
-        },
-      );
-    }
   }
   onMounted(() => {
     initForm();
     isMounted.value = true;
+    console.log('formValue', formValues);
   });
   defineExpose(formApi);
 </script>

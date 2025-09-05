@@ -14,11 +14,6 @@ const router = createRouter({
       name: 'components',
       children: [
         {
-          path: 'form',
-          name: 'Form',
-          component: () => import('@/views/components/form/index.vue'),
-        },
-        {
           path: 'vben-form',
           name: 'VbenForm',
           component: () => import('@/views/components/dy-form/index.vue'),

@@ -1,5 +1,5 @@
 <template>
-  <div>select</div>
+  <el-select v-model="modelValue" clearable v-bind="componentProps"></el-select>
 </template>
 
 <script setup lang="ts">
@@ -8,7 +8,7 @@
   const props = defineProps<{
     componentProps?: any;
   }>();
-  const modelValue = defineModel<string>({
+  const modelValue = defineModel<any>({
     default: undefined,
     set(value) {
       return value;

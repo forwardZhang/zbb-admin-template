@@ -1,75 +1,52 @@
 <template>
   <div class="form-page">
-    <DynamicForm :schema="schema" v-model="formData" :rules="rules" ref="schemaFormRef">
-    </DynamicForm>
+    {{ formData }}
+    <DynamicForm :fields="fields" v-model="formData" ref="schemaFormRef"> </DynamicForm>
   </div>
 </template>
 
 <script setup lang="ts">
   import DynamicForm from '@/components/dynamic-form/index.vue';
   import { ref } from 'vue';
-  const schema = [
+  const fields = [
     {
-      label: '我是用户对象',
-      fieldName: 'userData',
-      type: 'object',
-      properties: [
-        {
-          label: '姓名',
-          fieldName: 'name',
-          type: 'text',
-        },
-        {
-          label: '年龄',
-          fieldName: 'age',
-          type: 'number',
-        },
-        {
-          type: 'array',
-          label: '联系方式',
-          fieldName: 'contacts',
-          items: {
-            type: 'object',
-            properties: [
-              {
-                type: 'select',
-                label: '类型',
-                fieldName: 'type',
-                span: 8,
-                componentProps: {
-                  options: [
-                    { label: '手机', value: 'phone' },
-                    { label: '邮箱', value: 'email' },
-                  ],
-                },
-              },
-              {
-                type: 'text',
-                label: '值',
-                fieldName: 'value',
-                span: 16,
-              },
-            ],
-          },
-        },
-      ],
+      label: '姓名',
+      fieldName: 'userData.name',
+      type: 'text',
+      required: true,
     },
     {
-      label: '我是用户对象',
-      fieldName: 'userData',
-      type: 'object',
-      properties: [
-        {
-          label: '姓名',
-          fieldName: 'name',
-          type: 'text',
-        },
-        {
-          label: '年龄',
-          fieldName: 'age',
-          type: 'number',
-        },
-      ],
+      label: '年龄',
+      fieldName: 'userData.age',
+      type: 'number',
+    },
+    {
+      type: 'array',
+      label: '联系方式',
+      fieldName: 'contacts',
+      items: {
+        type: 'object',
+        properties: [
+          {
+            type: 'select',
+            label: '类型',
+            fieldName: 'type',
+            span: 8,
+            componentProps: {
+              options: [
+                { label: '手机', value: 'phone' },
+                { label: '邮箱', value: 'email' },
+              ],
+            },
+          },
+          {
+            type: 'text',
+            label: '值',
+            fieldName: 'value',
+            span: 16,
+          },
+        ],
+      },
     },
     {
       label: '文本类',

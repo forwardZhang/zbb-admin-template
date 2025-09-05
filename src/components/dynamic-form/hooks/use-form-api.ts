@@ -5,10 +5,9 @@ import { get, merge, set } from 'lodash-es';
 // 生成类型
 
 export function useFormApi() {
-  const formValues = reactive({});
-  const prevFormData = reactive({});
   const componentInstanceMap = shallowReactive({});
 
+  const formValues = reactive({});
   const formInstanceRef = ref<FormInstance | null>();
   const validate = (...args) => {
     return formInstanceRef.value?.validate(...args);
@@ -23,11 +22,11 @@ export function useFormApi() {
     formInstanceRef.value?.clearValidate(...args);
   };
 
-  function getFormValues() {
+  function getValues() {
     return formValues;
   }
 
-  function setFormValues(data = {}) {
+  function setValues(data = {}) {
     merge(formValues, data);
   }
 
@@ -50,13 +49,13 @@ export function useFormApi() {
 
   function registerForm({
     formRef,
-    formValues,
+    initFormValue = {},
   }: {
     formRef: Ref<FormInstance | null>;
-    formValues: Record<string, any>;
+    initFormValue?: any;
   }) {
     formInstanceRef.value = formRef.value;
-    setFormValues(formValues);
+    setValues(initFormValue);
   }
 
   return {
@@ -65,8 +64,6 @@ export function useFormApi() {
     validateField,
     resetFields,
     clearValidate,
-    getFormValues,
-    setFormValues,
     registerForm,
     getOptions,
     setOptions,

@@ -45,4 +45,5 @@ export interface FormSchema {
   required?: boolean;
   rules?: any[];
   span?: number;
+  slotName?: string;
 }

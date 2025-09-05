@@ -1,5 +1,13 @@
 <template>
-  <FormItem :field="field">
+  <el-form-item
+    class="form-item"
+    :label="field.label"
+    :prop="field.fieldName"
+    v-if="isIf"
+    v-show="isShow"
+    :rules="computedRules"
+    v-bind="field.formFieldProps"
+  >
     <slot
       :model="formValues"
       v-bind="{
@@ -8,23 +16,21 @@
     >
       <component
         :is="FieldComponent"
-        v-model="fieldValue"
-        v-bind="{
-          ...computedProps,
-        }"
+        :field="field"
+        :component-props="computedProps"
+        v-model="modelValue"
       />
     </slot>
-  </FormItem>
+  </el-form-item>
 </template>
 
 <script setup lang="ts">
   import { type Component, computed } from 'vue';
-  import { get, isFunction, isString, set } from 'lodash-es';
+  import { get, isFunction, isNil, isString, set } from 'lodash-es';
   import type { FormSchema } from '../types';
   import useDependencies from '../hooks/use-dependencies.ts';
   import { injectFormApi } from '../hooks/use-form-context.ts';
   import { getWidgetComponent } from '@/components/dynamic-form/components/widgets';
-  import FormItem from './form-item.vue';
 
   const formApi: any = injectFormApi<any>();
   const { formValues } = formApi;
@@ -32,6 +38,10 @@
   const props = defineProps<{
     field: FormSchema;
   }>();
+  defineOptions({
+    name: 'FormField',
+    inheritAttrs: false,
+  });
 
   const FieldComponent = computed(() => {
     const component = props.field.type;
@@ -43,7 +53,7 @@
   });
 
   // 使用defineModel简化双向绑定
-  const fieldValue = defineModel({
+  const modelValue = defineModel({
     get() {
       return get(formValues, props.field.fieldName);
     },
@@ -53,7 +63,7 @@
   });
 
   // 依赖项处理
-  const { dynamicComponentProps, isDisabled } = useDependencies({
+  const { dynamicRules, isIf, isShow, dynamicComponentProps, isDisabled } = useDependencies({
     getDependencies: () => props.field.dependencies,
     formValues,
     formApi,
@@ -83,5 +93,20 @@
         : `请输入${props.field.label}`;
     }
     return '';
+  });
+
+  // 校验规则
+  const computedRules = computed(() => {
+    let ruleValues: any = [];
+    if (Array.isArray(props.field.rules)) {
+      ruleValues = [...props.field.rules];
+    } else if (!isNil(props.field.required)) {
+      ruleValues.push({
+        required: props.field.required,
+        message: `${props.field.label}是必填项`,
+        trigger: 'blur',
+      });
+    }
+    return [...ruleValues, ...dynamicRules.value];
   });
 </script>
