@@ -99,6 +99,9 @@
           },
         ],
       },
+      onChange: (value) => {
+        console.log('value', value);
+      },
       // componentProps: {
       //   filterable: true,
       //   options: [

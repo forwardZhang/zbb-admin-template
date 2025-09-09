@@ -5,6 +5,7 @@
 <script setup lang="ts">
   const props = defineProps<{
     componentProps?: any;
+    field: any;
   }>();
   const modelValue = defineModel<string>({
     default: '',
