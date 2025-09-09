@@ -3,8 +3,8 @@
     <el-descriptions-item label="home页面">
       <RouterLink to="/">goToHome</RouterLink>
     </el-descriptions-item>
-    <el-descriptions-item label="customForm">
-      <RouterLink to="/components/form">goToCustomForm</RouterLink>
+    <el-descriptions-item label="schemaForm">
+      <RouterLink to="/components/schema-form">goToSchemaForm</RouterLink>
     </el-descriptions-item>
     <el-descriptions-item label="vBenForm">
       <RouterLink to="/components/vben-form">goToVbenForm</RouterLink>

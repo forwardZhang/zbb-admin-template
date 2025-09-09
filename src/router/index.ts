@@ -18,6 +18,11 @@ const router = createRouter({
           name: 'VbenForm',
           component: () => import('@/views/components/dy-form/index.vue'),
         },
+        {
+          path: 'schema-form',
+          name: 'SchemaForm',
+          component: () => import('@/views/components/sc-form/index.vue'),
+        },
       ],
     },
   ],
