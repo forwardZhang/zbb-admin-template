@@ -6,9 +6,6 @@
     <el-descriptions-item label="schemaForm">
       <RouterLink to="/components/schema-form">goToSchemaForm</RouterLink>
     </el-descriptions-item>
-    <el-descriptions-item label="vBenForm">
-      <RouterLink to="/components/vben-form">goToVbenForm</RouterLink>
-    </el-descriptions-item>
   </el-descriptions>
   <div class="page-wrap">
     <RouterView />

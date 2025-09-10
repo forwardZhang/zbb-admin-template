@@ -1,210 +1,317 @@
 <template>
-  <div class="app-container">
-    <h1>SchemaForm 示例</h1>
+  <div class="schema-form-example">
+    <h2 class="example-title">SchemaForm 示例</h2>
+    <div class="form-container">
+      <SchemaForm
+        ref="schemaFormRef"
+        :schemas="formSchema"
+        v-model="formData"
+        :label-width="120"
+        :defaultUseRowCol="true"
+        :defaultRowProps="{ gutter: 20 }"
+        :defaultColProps="{ span: 12 }"
+        @submit="handleSubmit"
+      />
 
-    <!-- 使用SchemaForm而不是el-form + SchemaField -->
-    <schema-form ref="formRef" :schemas="formSchema" v-model="formData" label-width="120px" />
-
-    <div class="form-operation">
-      <el-button type="primary" @click="handleSubmit">提交</el-button>
-      <el-button @click="handleReset">重置</el-button>
-      <el-button @click="getFormData">获取数据</el-button>
+      <div class="form-actions">
+        <el-button type="primary" @click="handleSubmit">提交</el-button>
+        <el-button @click="handleReset">重置</el-button>
+        <el-button @click="handleGetValues">获取值</el-button>
+      </div>
     </div>
 
-    <div class="form-data">
-      <h3>表单数据：</h3>
+    <div class="form-result">
+      <h3>表单数据:</h3>
       <pre>{{ formData }}</pre>
     </div>
   </div>
 </template>
 
-<script lang="ts" setup>
-  import { ref, reactive } from 'vue';
-  import { ElMessage } from 'element-plus';
-  import SchemaForm from '@/components/schema-form/index.ts';
+<script setup lang="ts">
+  import { ref, onMounted } from 'vue';
+  import SchemaForm from '@/components/schema-form/index.vue';
+  import type { Schema } from '@/components/schema-form/types';
 
-  const formRef = ref(null);
+  // 表单数据
+  const formData = ref({});
 
-  // 示例schema配置
-  const formSchema = [
+  // 表单引用
+  const schemaFormRef = ref<any>(null);
+
+  // 选项数据 - 城市列表
+  const cityOptions = [
+    { label: '北京', value: 'beijing' },
+    { label: '上海', value: 'shanghai' },
+    { label: '广州', value: 'guangzhou' },
+    { label: '深圳', value: 'shenzhen' },
+  ];
+
+  // 远程选项示例 - 模拟API请求
+  const fetchJobOptions = async () => {
+    // 模拟网络请求延迟
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return [
+      { label: '前端开发', value: 'frontend' },
+      { label: '后端开发', value: 'backend' },
+      { label: '产品经理', value: 'product' },
+      { label: '设计师', value: 'designer' },
+    ];
+  };
+
+  // 表单配置Schema
+  const formSchema: Schema[] = [
+    // 基础组件示例
     {
       field: 'name',
-      label: '姓名',
       type: 'input',
-      component: 'el-input',
+      label: '姓名',
       placeholder: '请输入姓名',
-      rules: [{ required: true, message: '姓名不能为空', trigger: 'blur' }],
-    },
-    {
-      field: 'gender',
-      label: '性别',
-      type: 'select',
-      component: 'el-select',
-      rules: [{ required: true, message: '请选择性别', trigger: 'change' }],
-      options: [
-        { label: '男', value: 'male' },
-        { label: '女', value: 'female' },
-        { label: '其他', value: 'other' },
-      ],
-      componentProps: {
-        style: 'width: 100%',
-      },
+      rules: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+      defaultValue: '张三',
+      colProps: { span: 24 }, // 占满一行
     },
     {
       field: 'age',
+      type: 'number',
       label: '年龄',
-      type: 'input-number',
-      component: 'el-input-number',
-      visible: (formData) => formData.gender === 'male',
-      placeholder: (formData) => (formData.gender === 'male' ? '请输入年龄' : ''),
-      rules: (formData) =>
-        formData.gender === 'male'
-          ? [{ required: true, message: '年龄不能为空', trigger: 'blur' }]
-          : [],
+      placeholder: '请输入年龄',
+      rules: [
+        { required: true, message: '请输入年龄', trigger: 'blur' },
+        { type: 'number', min: 18, max: 120, message: '年龄必须在18-120之间', trigger: 'blur' },
+      ],
+      componentProps: {
+        controlsPosition: 'right',
+      },
     },
     {
+      field: 'gender',
+      type: 'radio',
+      label: '性别',
+      options: [
+        { label: '男', value: 'male' },
+        { label: '女', value: 'female' },
+      ],
+      defaultValue: 'male',
+    },
+    {
+      field: 'hobby',
+      type: 'checkbox',
+      label: '爱好',
+      options: [
+        { label: '阅读', value: 'reading' },
+        { label: '运动', value: 'sports' },
+        { label: '音乐', value: 'music' },
+        { label: '旅行', value: 'travel' },
+      ],
+      defaultValue: ['reading', 'music'],
+    },
+    {
+      field: 'city',
+      type: 'select',
+      label: '城市',
+      options: cityOptions,
+      placeholder: '请选择城市',
+      rules: [{ required: true, message: '请选择城市', trigger: 'change' }],
+    },
+    {
+      field: 'job',
+      type: 'select',
+      label: '职业',
+      options: fetchJobOptions, // 远程加载选项
+      placeholder: '请选择职业',
+      colProps: { span: 24 }, // 占满一行
+    },
+    {
+      field: 'hasCar',
+      type: 'switch',
+      label: '是否有车',
+      componentProps: {
+        activeText: '有',
+        inactiveText: '无',
+      },
+    },
+    {
+      field: 'joinDate',
+      type: 'date',
+      label: '入职日期',
+      placeholder: '请选择入职日期',
+      rules: [{ required: true, message: '请选择入职日期', trigger: 'change' }],
+    },
+
+    // 对象类型示例
+    {
       field: 'address',
-      label: '地址信息',
       type: 'object',
+      label: '家庭地址',
+      collapse: true, // 可折叠
+      colProps: { span: 24 }, // 占满一行
       properties: [
         {
           field: 'province',
-          label: '省份',
           type: 'select',
-          component: 'el-select',
-          options: {
-            dependencies: [],
-            handler: async (formData) => {
-              // 模拟异步请求
-              return new Promise((resolve) => {
-                setTimeout(() => {
-                  resolve([
-                    { label: '北京', value: 'beijing' },
-                    { label: '上海', value: 'shanghai' },
-                    { label: '广东', value: 'guangdong' },
-                  ]);
-                }, 500);
-              });
-            },
-          },
+          label: '省份',
+          options: [
+            { label: '北京市', value: 'bj' },
+            { label: '上海市', value: 'sh' },
+            { label: '广东省', value: 'gd' },
+          ],
+          rules: [{ required: true, message: '请选择省份', trigger: 'change' }],
         },
         {
           field: 'city',
-          label: '城市',
           type: 'select',
-          component: 'el-select',
-          options: {
-            dependencies: ['address.province'], // 依赖省份字段
-            handler: async (formData) => {
-              const province = formData.address?.province;
-              if (!province) return [];
-
-              // 根据省份获取城市
-              const cities = {
-                beijing: [{ label: '北京市', value: 'beijing' }],
-                shanghai: [{ label: '上海市', value: 'shanghai' }],
-                guangdong: [
-                  { label: '广州市', value: 'guangzhou' },
-                  { label: '深圳市', value: 'shenzhen' },
-                  { label: '东莞市', value: 'dongguan' },
-                ],
-              };
-
-              return cities[province] || [];
-            },
-          },
+          label: '城市',
+          options: cityOptions,
+          rules: [{ required: true, message: '请选择城市', trigger: 'change' }],
+        },
+        {
+          field: 'detail',
+          type: 'input',
+          label: '详细地址',
+          placeholder: '请输入详细地址',
+          rules: [{ required: true, message: '请输入详细地址', trigger: 'blur' }],
+          colProps: { span: 24 }, // 占满一行
         },
       ],
     },
+
+    // 数组类型示例 - 联系人列表
     {
-      field: 'hobbies',
-      label: '兴趣爱好',
+      field: 'contacts',
       type: 'array',
+      label: '紧急联系人',
+      addText: '添加联系人',
+      removeText: '删除',
+      minLength: 1,
+      maxLength: 3,
+      colProps: { span: 24 }, // 占满一行
       items: {
         type: 'object',
-        defaultValue: { name: '', level: 'beginner' },
         properties: [
           {
             field: 'name',
-            label: '爱好名称',
             type: 'input',
-            component: 'el-input',
-            rules: [{ required: true, message: '爱好名称不能为空', trigger: 'blur' }],
+            label: '姓名',
+            rules: [{ required: true, message: '请输入联系人姓名', trigger: 'blur' }],
           },
           {
-            field: 'level',
-            label: '熟练程度',
-            type: 'select',
-            component: 'el-select',
-            options: [
-              { label: '初学者', value: 'beginner' },
-              { label: '中等', value: 'intermediate' },
-              { label: '专家', value: 'expert' },
+            field: 'phone',
+            type: 'input',
+            label: '电话',
+            rules: [
+              { required: true, message: '请输入联系电话', trigger: 'blur' },
+              { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
             ],
+          },
+          {
+            field: 'relation',
+            type: 'select',
+            label: '关系',
+            options: [
+              { label: '父母', value: 'parent' },
+              { label: '配偶', value: 'spouse' },
+              { label: '子女', value: 'child' },
+              { label: '朋友', value: 'friend' },
+            ],
+            rules: [{ required: true, message: '请选择关系', trigger: 'change' }],
+            colProps: { span: 24 }, // 占满一行
           },
         ],
       },
     },
+
+    // 数组类型示例 - 技能列表
+    // {
+    //   field: 'skills',
+    //   type: 'array',
+    //   label: '技能标签',
+    //   addText: '添加技能',
+    //   removeText: '删除',
+    //   colProps: { span: 24 }, // 占满一行
+    //   items: {
+    //     type: 'input',
+    //     placeholder: '请输入技能',
+    //   },
+    // },
   ];
 
-  const formData = reactive({
-    name: '',
-    gender: '',
-    age: undefined,
-    address: {
-      province: '',
-      city: '',
-    },
-    hobbies: [],
-  });
-
+  // 提交表单
   const handleSubmit = async () => {
-    try {
-      // 直接调用SchemaForm的validate方法
-      await formRef.value.validate();
-      ElMessage.success('表单验证成功!');
-      console.log('表单数据:', formData);
-    } catch (error) {
-      ElMessage.error('表单验证失败，请检查输入!');
+    const isValid = await schemaFormRef.value.validate();
+    if (isValid) {
+      console.log('表单提交:', formData.value);
+      // 这里可以添加实际提交逻辑
     }
   };
 
+  // 重置表单
   const handleReset = () => {
-    // 直接调用SchemaForm的resetFields方法
-    formRef.value.resetFields();
-    // 同时重置数据
-    Object.assign(formData, {
-      name: '',
-      gender: '',
-      age: undefined,
-      province: '',
-      city: '',
-      hobbies: [],
-    });
+    schemaFormRef.value.resetFields();
   };
 
-  const getFormData = () => {
-    // 获取表单数据
-    const data = formRef.value.getFormData();
-    console.log('当前表单数据:', data);
-    ElMessage.info('已获取表单数据，请查看控制台');
+  // 获取表单值
+  const handleGetValues = () => {
+    const values = schemaFormRef.value.getFormValue();
+    console.log('当前表单值:', values);
   };
+
+  // 初始化
+  onMounted(() => {
+    // 可以在这里设置初始值
+    formData.value = {
+      hasCar: true,
+      contacts: [
+        {
+          name: '李四',
+          phone: '13800138000',
+          relation: 'friend',
+        },
+      ],
+      skills: ['Vue', 'TypeScript'],
+    };
+  });
 </script>
 
-<style>
-  .app-container {
-    padding: 20px;
-    max-width: 800px;
+<style scoped>
+  .schema-form-example {
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 20px;
   }
 
-  .form-operation {
+  .example-title {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .form-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+  }
+
+  .form-actions {
     margin-top: 20px;
     display: flex;
     gap: 10px;
+    justify-content: center;
   }
 
-  .form-data {
-    margin-top: 20px;
+  .form-result {
+    background-color: #f5f7fa;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .form-result pre {
+    margin: 10px 0 0;
+    padding: 10px;
+    background-color: #2d2d2d;
+    color: #f8f8f2;
+    border-radius: 4px;
+    overflow-x: auto;
   }
 </style>
