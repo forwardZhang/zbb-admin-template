@@ -1,13 +1,12 @@
-import type { Ref } from 'vue';
+import { type Ref, unref } from 'vue';
 import { ElForm } from 'element-plus';
-import { getValue, setValue } from '../utils';
 import type { FormApi } from '../types';
+import { get, set } from 'lodash-es';
 
 /**
  * 表单API Hook
  * @param modelValue 表单数据（通过defineModel获取）
  * @param formRef 表单组件引用
- * @param emit 组件emit函数
  * @returns 表单操作API
  */
 export function useFormApi(
@@ -16,26 +15,22 @@ export function useFormApi(
 ): FormApi {
   // 获取完整表单值
   const getFormValue = () => {
-    return { ...modelValue.value };
+    return unref(modelValue);
   };
 
   // 设置完整表单值
-  const setFormValue = (value: Record<string, any>, emitChange = true) => {
-    if (emitChange) {
-      modelValue.value = { ...value };
-    } else {
-      Object.assign(modelValue.value, value);
-    }
+  const setFormValue = (value: Record<string, any>) => {
+    Object.assign(modelValue.value, value);
   };
 
   // 获取单个字段值
-  const getFieldValue = (field: string) => {
-    return getValue(modelValue.value, field);
+  const getFieldValue = (path: string) => {
+    return get(modelValue.value, path);
   };
 
   // 设置单个字段值
-  const setFieldValue = (field: string, value: any, emitChange = true) => {
-    setValue(modelValue.value, field, value);
+  const setFieldValue = (path: string, value: any) => {
+    set(modelValue.value, path, value);
   };
 
   // 验证整个表单

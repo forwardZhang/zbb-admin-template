@@ -1,12 +1,15 @@
 <template>
   <div class="array-field">
-    <div v-for="(item, index) in modelValue" :key="index" class="array-item">
+    <div
+      v-for="(item, index) in modelValue"
+      :key="schema.rowKey ? item[schema.rowKey] : index"
+      class="array-item"
+    >
       <div class="array-item__content">
-        <component
-          :is="itemComponent"
+        <SchemaFormItem
+          :schema="schema.item as any"
+          :path="`${path}[${index}]`"
           v-model="modelValue[index]"
-          :schema="schema.items"
-          :field="`${field}[${index}]`"
         />
       </div>
       <div class="array-item__actions">
@@ -25,7 +28,7 @@
       type="primary"
       size="small"
       @click="addItem"
-      :disabled="modelValue.length >= (schema.maxLength || Infinity)"
+      :disabled="modelValue.length >= (schema.maxLength || 5)"
       class="array-add-btn"
     >
       {{ schema.addText || '添加' }}
@@ -34,22 +37,20 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, inject } from 'vue';
   import type { ArraySchema, Schema, FormApi } from '../../types';
-  import { componentMap } from '../componentMap';
   import { injectFormApi } from '@/components/schema-form/hooks/use-form-context.ts';
-
+  import { isFunction } from 'lodash-es';
+  import SchemaFormItem from '@/components/schema-form/components/schema-form-item.vue';
+  defineOptions({
+    name: 'ArrayField',
+    inheritAttrs: false,
+  });
   const props = defineProps<{
     schema: ArraySchema;
-    field: string;
+    path: string;
   }>();
 
   const formApi = injectFormApi();
-
-  // 获取数组项对应的组件
-  const itemComponent = computed(() => {
-    return props.schema.items.component || componentMap[props.schema.items.type]!;
-  });
 
   const modelValue = defineModel<any[]>({
     default: () => [],
@@ -69,27 +70,18 @@
 
   // 创建带默认值的新项
   const createDefaultItem = () => {
-    const defaultItem: any = {};
-
-    // 处理对象类型的数组项
-    if (props.schema.items.type === 'object' && 'properties' in props.schema.items) {
-      props.schema.items.properties.forEach((prop) => {
-        if (prop.defaultValue !== undefined) {
-          defaultItem[prop.field] = prop.defaultValue;
-        }
-      });
-    } else {
-      // 基础类型的默认值
-      return props.schema.items.defaultValue !== undefined ? props.schema.items.defaultValue : null;
+    if (isFunction(props.schema.getDefaultItem)) {
+      return props.schema.getDefaultItem();
     }
-
-    return defaultItem;
+    return {};
   };
 </script>
 
 <style scoped>
   .array-field {
     padding: 8px 0;
+    flex: 1;
+    margin-bottom: -18px;
   }
 
   .array-item {

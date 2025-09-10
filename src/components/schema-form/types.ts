@@ -41,7 +41,7 @@ export interface ColProps {
 
 // 表单项 schema 基础类型
 export interface BaseSchema {
-  field: string;
+  name: string; // 将 field 改为 name
   type: string;
   label?: string | ((formValue: Record<string, any>) => string);
   visible?: boolean | ((formValue: Record<string, any>) => boolean);
@@ -50,16 +50,10 @@ export interface BaseSchema {
   placeholder?: string | ((formValue: Record<string, any>) => string);
   defaultValue?: any;
   component?: Component;
+  span?: number;
   componentProps?:
     | ComponentProps
-    | ((params: { formApi: FormApi; schema: BaseSchema; field: string }) => ComponentProps);
-
-  // 布局相关配置
-  useRowCol?: boolean; // 是否使用栅格布局
-  rowProps?: RowProps | ((formValue: Record<string, any>) => RowProps); // 传递给el-row的属性
-  colProps?: ColProps | ((formValue: Record<string, any>) => ColProps); // 传递给el-col的属性
-
-  [key: string]: any;
+    | ((params: { formApi: FormApi; schema: BaseSchema; path: string }) => ComponentProps); // field 改为 name
 }
 
 // 选择器类型 schema
@@ -72,19 +66,26 @@ export interface SelectSchema extends BaseSchema {
 // 对象类型 schema
 export interface ObjectSchema extends BaseSchema {
   type: 'object';
-  properties: BaseSchema[];
-  collapse?: boolean; // 是否可折叠
+  fields: BaseSchema[]; // 将 properties 改为 fields
+  inline?: boolean; // 是否可折叠
 }
 
 // 数组类型 schema
 export interface ArraySchema extends BaseSchema {
   type: 'array';
-  items: BaseSchema;
   minLength?: number;
   maxLength?: number;
   addText?: string;
   removeText?: string;
-  itemLabel?: (item: any, index: number) => string;
+  getDefaultItem?: () => any;
+  rowKey?: string;
+  item: {
+    label?: string;
+    name?: string;
+    type: 'object';
+    component?: Component;
+    fields: BaseSchema;
+  };
 }
 
 // 联合所有 schema 类型
@@ -94,10 +95,10 @@ export type Schema = BaseSchema | SelectSchema | ObjectSchema | ArraySchema;
 export interface FormApi {
   getFormValue: () => Record<string, any>;
   setFormValue: (value: Record<string, any>, emitChange?: boolean) => void;
-  getFieldValue: (field: string) => any;
-  setFieldValue: (field: string, value: any, emitChange?: boolean) => void;
+  getFieldValue: (name: string) => any; // field 改为 name
+  setFieldValue: (name: string, value: any, emitChange?: boolean) => void; // field 改为 name
   validate: () => Promise<boolean>;
-  validateField: (field: string) => Promise<void>;
+  validateField: (name: string) => Promise<void>; // field 改为 name
   resetFields: () => void;
   getFormRef: () => any;
 }
@@ -107,12 +108,9 @@ export interface SchemaFormProps {
   schemas: Schema[];
   modelValue?: Record<string, any>;
   labelWidth?: string | number;
+  inline?: boolean;
+  labelPosition?: 'left' | 'right' | 'top';
   disabled?: boolean;
-  // 全局默认是否使用栅格布局
-  defaultUseRowCol?: boolean;
-  // 全局默认栅格属性
-  defaultRowProps?: RowProps;
-  defaultColProps?: ColProps;
 }
 
 // SchemaForm 组件事件

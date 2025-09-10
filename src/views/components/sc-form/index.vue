@@ -7,9 +7,13 @@
         :schemas="formSchema"
         v-model="formData"
         :label-width="120"
-        :defaultUseRowCol="true"
-        :defaultRowProps="{ gutter: 20 }"
-        :defaultColProps="{ span: 12 }"
+        @submit="handleSubmit"
+      />
+      <SchemaForm
+        ref="schemaFormRef"
+        :schemas="formSchema2"
+        v-model="formData2"
+        :label-width="120"
         @submit="handleSubmit"
       />
 
@@ -32,6 +36,8 @@
   import SchemaForm from '@/components/schema-form/index.vue';
   import type { Schema } from '@/components/schema-form/types';
 
+  import HelloWorld from './helloword.vue';
+  import HelloWorld1 from './helloword1.vue';
   // 表单数据
   const formData = ref({});
 
@@ -62,16 +68,16 @@
   const formSchema: Schema[] = [
     // 基础组件示例
     {
-      field: 'name',
+      name: 'name',
       type: 'input',
       label: '姓名',
       placeholder: '请输入姓名',
       rules: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
       defaultValue: '张三',
-      colProps: { span: 24 }, // 占满一行
+      span: 12,
     },
     {
-      field: 'age',
+      name: 'age',
       type: 'number',
       label: '年龄',
       placeholder: '请输入年龄',
@@ -79,12 +85,13 @@
         { required: true, message: '请输入年龄', trigger: 'blur' },
         { type: 'number', min: 18, max: 120, message: '年龄必须在18-120之间', trigger: 'blur' },
       ],
+      span: 12,
       componentProps: {
         controlsPosition: 'right',
       },
     },
     {
-      field: 'gender',
+      name: 'gender',
       type: 'radio',
       label: '性别',
       options: [
@@ -94,7 +101,7 @@
       defaultValue: 'male',
     },
     {
-      field: 'hobby',
+      name: 'hobby',
       type: 'checkbox',
       label: '爱好',
       options: [
@@ -106,7 +113,7 @@
       defaultValue: ['reading', 'music'],
     },
     {
-      field: 'city',
+      name: 'city',
       type: 'select',
       label: '城市',
       options: cityOptions,
@@ -114,15 +121,14 @@
       rules: [{ required: true, message: '请选择城市', trigger: 'change' }],
     },
     {
-      field: 'job',
+      name: 'job',
       type: 'select',
       label: '职业',
       options: fetchJobOptions, // 远程加载选项
       placeholder: '请选择职业',
-      colProps: { span: 24 }, // 占满一行
     },
     {
-      field: 'hasCar',
+      name: 'hasCar',
       type: 'switch',
       label: '是否有车',
       componentProps: {
@@ -131,7 +137,7 @@
       },
     },
     {
-      field: 'joinDate',
+      name: 'joinDate',
       type: 'date',
       label: '入职日期',
       placeholder: '请选择入职日期',
@@ -140,14 +146,12 @@
 
     // 对象类型示例
     {
-      field: 'address',
+      name: 'address',
       type: 'object',
       label: '家庭地址',
-      collapse: true, // 可折叠
-      colProps: { span: 24 }, // 占满一行
-      properties: [
+      fields: [
         {
-          field: 'province',
+          name: 'province',
           type: 'select',
           label: '省份',
           options: [
@@ -158,14 +162,14 @@
           rules: [{ required: true, message: '请选择省份', trigger: 'change' }],
         },
         {
-          field: 'city',
+          name: 'city',
           type: 'select',
           label: '城市',
           options: cityOptions,
           rules: [{ required: true, message: '请选择城市', trigger: 'change' }],
         },
         {
-          field: 'detail',
+          name: 'detail',
           type: 'input',
           label: '详细地址',
           placeholder: '请输入详细地址',
@@ -177,7 +181,7 @@
 
     // 数组类型示例 - 联系人列表
     {
-      field: 'contacts',
+      name: 'contacts',
       type: 'array',
       label: '紧急联系人',
       addText: '添加联系人',
@@ -185,17 +189,18 @@
       minLength: 1,
       maxLength: 3,
       colProps: { span: 24 }, // 占满一行
-      items: {
+      getDefaultValue: () => [{ name: '', phone: '', relation: '' }],
+      item: {
         type: 'object',
-        properties: [
+        fields: [
           {
-            field: 'name',
+            name: 'name',
             type: 'input',
             label: '姓名',
             rules: [{ required: true, message: '请输入联系人姓名', trigger: 'blur' }],
           },
           {
-            field: 'phone',
+            name: 'phone',
             type: 'input',
             label: '电话',
             rules: [
@@ -204,7 +209,7 @@
             ],
           },
           {
-            field: 'relation',
+            name: 'relation',
             type: 'select',
             label: '关系',
             options: [
@@ -219,22 +224,36 @@
         ],
       },
     },
-
-    // 数组类型示例 - 技能列表
-    // {
-    //   field: 'skills',
-    //   type: 'array',
-    //   label: '技能标签',
-    //   addText: '添加技能',
-    //   removeText: '删除',
-    //   colProps: { span: 24 }, // 占满一行
-    //   items: {
-    //     type: 'input',
-    //     placeholder: '请输入技能',
-    //   },
-    // },
+    {
+      name: 'name2',
+      type: 'custom',
+      component: HelloWorld,
+      label: 'HelloWorld',
+      span: 12,
+    },
   ];
-
+  const formSchema2: Schema[] = [
+    // 基础组件示例
+    {
+      name: 'name1',
+      type: 'input',
+      label: '姓名',
+      placeholder: '请输入姓名',
+      rules: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+      defaultValue: '张三',
+      span: 12,
+    },
+    {
+      name: 'name2',
+      type: 'custom',
+      component: HelloWorld1,
+      label: 'HelloWorld1',
+      span: 12,
+    },
+  ];
+  const formData2 = ref({
+    name1: '李四',
+  });
   // 提交表单
   const handleSubmit = async () => {
     const isValid = await schemaFormRef.value.validate();
@@ -267,6 +286,11 @@
           relation: 'friend',
         },
       ],
+      address: {
+        province: undefined,
+        city: undefined,
+        detail: 'xxx',
+      },
       skills: ['Vue', 'TypeScript'],
     };
   });
