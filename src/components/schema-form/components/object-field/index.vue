@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-  import type { ObjectSchema } from '../../types';
   import ObjectRender from './object-render.vue';
+  import type { ObjectSchema } from '@/components/types/Form.ts';
   defineOptions({
     name: 'ObjectField',
     inheritAttrs: false,

@@ -14,8 +14,8 @@
       </div>
       <div class="array-item__actions">
         <el-button
-          type="text"
           size="small"
+          text
           @click="removeItem(index)"
           :disabled="modelValue.length <= (schema.minLength || 0)"
         >
@@ -37,10 +37,10 @@
 </template>
 
 <script setup lang="ts">
-  import type { ArraySchema, Schema, FormApi } from '../../types';
-  import { injectFormApi } from '@/components/schema-form/hooks/use-form-context.ts';
   import { isFunction } from 'lodash-es';
   import SchemaFormItem from '@/components/schema-form/components/schema-form-item.vue';
+  import { injectFormApi } from '@/components/schema-form/hooks/use-form-context.ts';
+  import type { ArraySchema, FormApi, Schema } from '@/components/types/Form.ts';
   defineOptions({
     name: 'ArrayField',
     inheritAttrs: false,

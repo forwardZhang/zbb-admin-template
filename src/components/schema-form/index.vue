@@ -1,51 +1,42 @@
 <template>
   <el-form
     ref="formRef"
-    :model="modelValue"
+    :model="formData"
     :label-width="props.labelWidth"
     v-bind="formProps"
     @submit.prevent="handleSubmit"
   >
     <div class="form-content">
-      <render-field :schema="currentSchema" path="" v-model="modelValue" />
+      <SchemaFormItem :schema="currentSchema" path="" v-model="formData" />
     </div>
   </el-form>
 </template>
 
 <script setup lang="ts">
-  import { ref, provide, onMounted, useAttrs, watchEffect } from 'vue';
+  import { onMounted, useSlots, watch } from 'vue';
   import { ElForm } from 'element-plus';
-  import type { SchemaFormProps, SchemaFormEmits } from './types';
   import { useFormApi } from './hooks/use-form-api.ts';
-  import { provideFormApi } from './hooks/use-form-context.ts';
-  import RenderField from '@/components/schema-form/components/render-field.vue';
+  import { provideFormApi, provideSlotCtx } from './hooks/use-form-context.ts';
+  import SchemaFormItem from '@/components/schema-form/components/schema-form-item.vue';
+  import type { SchemaFormEmits, SchemaFormProps } from '@/components/types/Form.ts';
   // 组件属性
   const props = defineProps<SchemaFormProps>();
-  const emit = defineEmits<SchemaFormEmits>();
-  const attrs = useAttrs();
-
-  // Vue3.5+ 双向绑定简化
-  const modelValue = defineModel<Record<string, any>>({
-    default: () => ({}),
-  });
-
-  // 表单引用
-  const formRef = ref<InstanceType<typeof ElForm>>();
-
+  const emits = defineEmits<SchemaFormEmits>();
   // 初始化表单API
-  const formApi = useFormApi(modelValue, formRef);
-
+  const formApi: any = useFormApi();
+  const { registerForm, formRef, formData, formId } = formApi;
   // 提供表单API给后代组件
   provideFormApi(formApi);
 
-  // 透传给el-form的属性
-  const formProps = { ...attrs };
+  // 插槽提供给后代组件
+  const slots = useSlots();
+  provideSlotCtx(slots);
 
   // 处理表单提交
   const handleSubmit = async () => {
     const isValid = await formApi.validate();
     if (isValid) {
-      emit('submit', formApi.getFormValue());
+      emits('submit', formApi.getFormData());
     }
   };
   // 初始化默认值
@@ -59,6 +50,20 @@
     inline: props.inline,
   };
 
+  registerForm({
+    formRef,
+    initFormValue: props.modelValue,
+  });
+
+  watch(
+    () => formData,
+    (newValue) => {
+      emits('update:modelValue', newValue);
+    },
+    {
+      deep: true,
+    },
+  );
   // 暴露组件方法
   defineExpose({
     ...formApi,

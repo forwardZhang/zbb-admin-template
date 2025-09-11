@@ -1,4 +1,4 @@
-import type { FormApi, BaseSchema } from '../types';
+import type { BaseSchema, FormApi } from '@/components/types/Form.ts';
 /**
  * 计算动态属性（支持函数或静态值）
  * @param params 参数对象

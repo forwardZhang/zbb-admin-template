@@ -1,31 +1,39 @@
 <template>
-  <template v-if="isVisible">
-    <el-form-item
-      :label="computedLabel"
-      :prop="path"
-      :rules="computedRules"
-      v-bind="formItemProps"
+  <el-form-item
+    :prop="path"
+    v-if="visible"
+    :path="path"
+    :rules="computedRules"
+    v-bind="formItemProps"
+  >
+    <template #label>
+      <!--      todo formData 传递不过去 warning-->
+      <RenderContent :content="schema.label" :data="formData"></RenderContent>
+    </template>
+    <component
+      v-if="currentComponent"
+      :is="currentComponent"
+      v-model="modelValue"
+      :schema="props.schema"
       :path="path"
-    >
-      <component
-        :is="currentComponent"
-        v-model="modelValue"
-        :schema="props.schema"
-        :path="path"
-        v-bind="componentProps"
-      />
-    </el-form-item>
-  </template>
+      :component-props="computedProps"
+    />
+    <!--    todo 自定义插槽-->
+    <template v-if="schema.type === 'slot'">
+      <SlotContent />
+    </template>
+  </el-form-item>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, inject, watch, onMounted, shallowRef } from 'vue';
+  import { ref, computed, useSlots } from 'vue';
   import type { Component } from 'vue';
-  import type { BaseSchema, FormApi, Option } from '../types';
   import { componentMap } from './component-map.ts';
-  import { computeDynamicProp, resolveDependencies, computeLayoutProps } from '../utils';
-  import { injectFormApi } from '@/components/schema-form/hooks/use-form-context.ts';
-  import { compact, concat } from 'lodash-es';
+  import { compact, concat, isFunction, isNil } from 'lodash-es';
+  import { injectFormApi, injectSlotCtx } from '@/components/schema-form/hooks/use-form-context.ts';
+  import useDependencies from '@/components/schema-form/hooks/use-dependencies.ts';
+  import type { BaseSchema, FormApi } from '@/components/types/Form.ts';
+  import RenderContent from '../../render-content/render-content.vue';
 
   // 组件属性
   const props = defineProps<{
@@ -47,103 +55,80 @@
 
   // 注入表单API
   const formApi = injectFormApi() as any;
+  const slotCtx = injectSlotCtx() as any;
 
-  // 组件显隐状态
-  const isVisible = computed(() => {
-    return (
-      computeDynamicProp({
-        prop: 'visible',
-        schema: props.schema,
-        formApi,
-        path: path.value,
-      }) !== false
-    );
+  const formData = computed(() => {
+    return formApi?.getFormData?.() ?? {};
   });
-
-  // 计算标签
-  const computedLabel = computed(() => {
-    return (
-      computeDynamicProp({
-        prop: 'label',
-        schema: props.schema,
-        formApi,
-        path: path.value,
-      }) || ''
-    );
-  });
-
-  // 计算校验规则
-  const computedRules = computed(() => {
-    return (
-      computeDynamicProp({
-        prop: 'rules',
-        schema: props.schema,
-        formApi,
-        path: path.value,
-      }) || []
-    );
-  });
-
-  // 计算禁用状态
-  const computedDisabled = computed(() => {
-    const schemaDisabled =
-      computeDynamicProp({
-        prop: 'disabled',
-        schema: props.schema,
-        formApi,
-        path: path.value,
-      }) || false;
-    return schemaDisabled;
-  });
-
   // 组件值（双向绑定）
   const modelValue = defineModel<any>();
 
+  const slots = useSlots();
+  const SlotContent = () => {
+    if (slots.default) {
+      return slots.default({
+        path: path.value,
+        schema: props.schema,
+      });
+    }
+    if (slotCtx?.[props.schema.slotName]) {
+      return slotCtx?.[props.schema.slotName]({
+        path: path.value,
+        schema: props.schema,
+      });
+    }
+    return undefined;
+  };
+
   // 当前要渲染的组件
-  const currentComponent = computed<Component>(() => {
+  const currentComponent = computed<Component | null>(() => {
+    if (props.schema.type === 'slot') {
+      return null;
+    }
     if (props.schema.type === 'custom') {
-      return props.schema.component;
+      return props.schema.component!;
     }
     return componentMap[props.schema.type]!;
   });
 
   // 组件属性
-  const componentProps = ref<Record<string, any>>({});
+  const { dynamicRules, visible, dynamicComponentProps, dynamicFormItemProps, isDisabled } =
+    useDependencies({
+      getDependencies: () => props.schema.dependencies,
+      formData: formApi.getFormData(),
+      formApi,
+      path: path.value,
+    });
 
-  // 计算组件属性
-  const computeComponentProps = () => {
-    // 基础属性
-    const baseProps: any = {
-      placeholder: computeDynamicProp({
-        prop: 'placeholder',
-        schema: props.schema,
-        formApi,
-        path: path.value,
-      }),
-      disabled: computedDisabled.value,
+  const formItemProps = computed(() => {
+    return {
+      ...props.schema.formItemProps,
+      ...dynamicFormItemProps.value,
     };
-
-    // 处理自定义组件属性（支持函数）
-    const customProps =
-      typeof props.schema.componentProps === 'function'
-        ? props.schema.componentProps({
-            formApi,
-            schema: props.schema,
-            path: path.value, // 将 field 改为 name
-          })
-        : props.schema.componentProps || {};
-
-    componentProps.value = { ...baseProps, ...customProps };
-  };
-
-  // 初始化
-  onMounted(() => {
-    computeComponentProps();
+  });
+  const computedProps = computed(() => {
+    const componentProps = props.schema.componentProps;
+    const result = {
+      ...componentProps,
+      ...dynamicComponentProps.value,
+    };
+    return result;
   });
 
-  // 透传给el-form-item的属性
-  const formItemProps = {
-    ...props.schema.formItemProps,
-  };
+  // 校验规则
+  const computedRules = computed(() => {
+    let ruleValues: any = [];
+    const schema = props.schema;
+    if (Array.isArray(schema.rules)) {
+      ruleValues = [...schema.rules];
+    } else if (!isNil(schema.required)) {
+      ruleValues.push({
+        required: schema.required,
+        message: `${schema.label}是必填项`,
+        trigger: 'blur',
+      });
+    }
+    return [...ruleValues, ...dynamicRules.value];
+  });
 </script>
 <style lang="scss" scoped></style>

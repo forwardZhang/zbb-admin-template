@@ -1,78 +1,56 @@
-import { type Ref, unref } from 'vue';
-import { ElForm } from 'element-plus';
-import type { FormApi } from '../types';
-import { get, set } from 'lodash-es';
+import { ref, reactive, shallowReactive, type Ref, useTemplateRef } from 'vue';
+import type { FormInstance } from 'element-plus';
+import { cloneDeep, get, merge, set, uniqueId } from 'lodash-es';
+import useFormOptions from '@/components/schema-form/hooks/use-form-options.ts';
+import useFieldInstance from '@/components/schema-form/hooks/use-field-instance.ts';
 
-/**
- * 表单API Hook
- * @param modelValue 表单数据（通过defineModel获取）
- * @param formRef 表单组件引用
- * @returns 表单操作API
- */
-export function useFormApi(
-  modelValue: Ref<Record<string, any>>,
-  formRef: Ref<InstanceType<typeof ElForm> | undefined>,
-): FormApi {
-  // 获取完整表单值
-  const getFormValue = () => {
-    return unref(modelValue);
+// 生成类型
+
+export function useFormApi() {
+  const formId = uniqueId('form-');
+  const formData = reactive({});
+  const formRef = useTemplateRef<FormInstance>('formRef');
+  const validate = (...args) => {
+    return formRef.value?.validate(...args);
+  };
+  const validateField = (...args) => {
+    return formRef.value?.validateField(...args);
+  };
+  const resetFields = (...args) => {
+    formRef.value?.resetFields(...args);
+  };
+  const clearValidate = (...args) => {
+    formRef.value?.clearValidate(...args);
   };
 
-  // 设置完整表单值
-  const setFormValue = (value: Record<string, any>) => {
-    Object.assign(modelValue.value, value);
-  };
+  function getFormData() {
+    return formData;
+  }
 
-  // 获取单个字段值
-  const getFieldValue = (path: string) => {
-    return get(modelValue.value, path);
-  };
+  function setFormData(data = {}) {
+    merge(formData, data);
+  }
 
-  // 设置单个字段值
-  const setFieldValue = (path: string, value: any) => {
-    set(modelValue.value, path, value);
-  };
-
-  // 验证整个表单
-  const validate = async () => {
-    if (formRef.value) {
-      try {
-        await formRef.value.validate();
-        return true;
-      } catch (error) {
-        return false;
-      }
-    }
-    return false;
-  };
-
-  // 验证单个字段
-  const validateField = async (field: string) => {
-    if (formRef.value) {
-      await formRef.value.validateField(field);
-    }
-  };
-
-  // 重置表单
-  const resetFields = () => {
-    if (formRef.value) {
-      formRef.value.resetFields();
-    }
-  };
-
-  // 获取表单组件引用
-  const getFormRef = () => {
-    return formRef.value;
-  };
+  const { getOptions, setOptions } = useFormOptions();
+  const { getFieldInstance, setFieldInstance } = useFieldInstance();
+  function registerForm({ initFormValue = {} }: { initFormValue?: any }) {
+    setFormData(cloneDeep(initFormValue));
+  }
 
   return {
-    getFormValue,
-    setFormValue,
-    getFieldValue,
-    setFieldValue,
+    formRef,
+    formId,
+    formData,
     validate,
     validateField,
     resetFields,
-    getFormRef,
+    clearValidate,
+    registerForm,
+    getOptions,
+    setOptions,
+    setFieldInstance,
+    getFieldInstance,
+    getFormData,
+    setFormData,
   };
 }

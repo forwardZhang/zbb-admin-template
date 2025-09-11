@@ -8,14 +8,11 @@
         v-model="formData"
         :label-width="120"
         @submit="handleSubmit"
-      />
-      <SchemaForm
-        ref="schemaFormRef"
-        :schemas="formSchema2"
-        v-model="formData2"
-        :label-width="120"
-        @submit="handleSubmit"
-      />
+      >
+        <template #customSlotField="{ path }">
+          <SlotComponent v-model="formData.slot1" :path="path"></SlotComponent>
+        </template>
+      </SchemaForm>
 
       <div class="form-actions">
         <el-button type="primary" @click="handleSubmit">提交</el-button>
@@ -32,14 +29,30 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, h } from 'vue';
   import SchemaForm from '@/components/schema-form/index.vue';
-  import type { Schema } from '@/components/schema-form/types';
 
   import HelloWorld from './helloword.vue';
   import HelloWorld1 from './helloword1.vue';
+  import SlotComponent from './slotComponent.vue';
+  import type { FormParams, Schema } from '@/components/types/Form.ts';
   // 表单数据
-  const formData = ref({});
+  const formData = ref({
+    hasCar: false,
+    contacts: [
+      {
+        name: '李四',
+        phone: '13800138000',
+        relation: 'friend',
+      },
+    ],
+    address: {
+      province: undefined,
+      city: undefined,
+      detail: 'xxx',
+    },
+    skills: ['Vue', 'TypeScript'],
+  });
 
   // 表单引用
   const schemaFormRef = ref<any>(null);
@@ -73,13 +86,27 @@
       label: '姓名',
       placeholder: '请输入姓名',
       rules: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-      defaultValue: '张三',
+      span: 12,
+    },
+    {
+      type: 'slot',
+      name: 'slot1',
+      slotName: 'customSlotField',
+      label: 'slot字段',
+      required: true,
       span: 12,
     },
     {
       name: 'age',
       type: 'number',
-      label: '年龄',
+      label: () =>
+        h(
+          'span',
+          {
+            style: 'color: red',
+          },
+          'a12312',
+        ),
       placeholder: '请输入年龄',
       rules: [
         { required: true, message: '请输入年龄', trigger: 'blur' },
@@ -89,28 +116,6 @@
       componentProps: {
         controlsPosition: 'right',
       },
-    },
-    {
-      name: 'gender',
-      type: 'radio',
-      label: '性别',
-      options: [
-        { label: '男', value: 'male' },
-        { label: '女', value: 'female' },
-      ],
-      defaultValue: 'male',
-    },
-    {
-      name: 'hobby',
-      type: 'checkbox',
-      label: '爱好',
-      options: [
-        { label: '阅读', value: 'reading' },
-        { label: '运动', value: 'sports' },
-        { label: '音乐', value: 'music' },
-        { label: '旅行', value: 'travel' },
-      ],
-      defaultValue: ['reading', 'music'],
     },
     {
       name: 'city',
@@ -134,6 +139,24 @@
       componentProps: {
         activeText: '有',
         inactiveText: '无',
+      },
+    },
+    {
+      name: 'carName',
+      type: 'input',
+      label: '汽车名称',
+      componentProps: {
+        activeText: '有',
+        inactiveText: '无',
+      },
+      dependencies: {
+        visible: ({ formData, path }) => {
+          if (formData.hasCar) {
+            return true;
+          }
+          return false;
+        },
+        triggerFields: ['hasCar'],
       },
     },
     {
@@ -188,8 +211,7 @@
       removeText: '删除',
       minLength: 1,
       maxLength: 3,
-      colProps: { span: 24 }, // 占满一行
-      getDefaultValue: () => [{ name: '', phone: '', relation: '' }],
+      getDefaultItem: () => [{ name: '', phone: '', relation: '' }],
       item: {
         type: 'object',
         fields: [
@@ -208,19 +230,6 @@
               { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
             ],
           },
-          {
-            name: 'relation',
-            type: 'select',
-            label: '关系',
-            options: [
-              { label: '父母', value: 'parent' },
-              { label: '配偶', value: 'spouse' },
-              { label: '子女', value: 'child' },
-              { label: '朋友', value: 'friend' },
-            ],
-            rules: [{ required: true, message: '请选择关系', trigger: 'change' }],
-            colProps: { span: 24 }, // 占满一行
-          },
         ],
       },
     },
@@ -232,28 +241,6 @@
       span: 12,
     },
   ];
-  const formSchema2: Schema[] = [
-    // 基础组件示例
-    {
-      name: 'name1',
-      type: 'input',
-      label: '姓名',
-      placeholder: '请输入姓名',
-      rules: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-      defaultValue: '张三',
-      span: 12,
-    },
-    {
-      name: 'name2',
-      type: 'custom',
-      component: HelloWorld1,
-      label: 'HelloWorld1',
-      span: 12,
-    },
-  ];
-  const formData2 = ref({
-    name1: '李四',
-  });
   // 提交表单
   const handleSubmit = async () => {
     const isValid = await schemaFormRef.value.validate();
@@ -275,25 +262,7 @@
   };
 
   // 初始化
-  onMounted(() => {
-    // 可以在这里设置初始值
-    formData.value = {
-      hasCar: true,
-      contacts: [
-        {
-          name: '李四',
-          phone: '13800138000',
-          relation: 'friend',
-        },
-      ],
-      address: {
-        province: undefined,
-        city: undefined,
-        detail: 'xxx',
-      },
-      skills: ['Vue', 'TypeScript'],
-    };
-  });
+  onMounted(() => {});
 </script>
 
 <style scoped>
